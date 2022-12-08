@@ -171,6 +171,6 @@ public class DirectMemoryUtils {
 	
 	public static long getDirectMemorySize() 
 	{
-		return sun.misc.VM.maxDirectMemory();
+		return 0;
 	}
 }
