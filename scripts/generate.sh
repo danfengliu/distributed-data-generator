@@ -41,7 +41,20 @@ do
     i=$((i+1))
 done
 
-NODES_COMPLETED=`etcdctl get /kibishii/ops/$OPID --endpoints=http://etcd-client:2379 --print-value-only | jq ".nodesCompleted" | sed -e 's/"//g'`
+ret=1
+i=0
+while  [ $i -lt 60 ] && [  "$ret" -ne "0" ]
+do
+    sleep 10
+    NODES_COMPLETED=`etcdctl get /kibishii/ops/$OPID --endpoints=http://etcd-client:2379 --print-value-only | jq ".nodesCompleted" | sed -e 's/"//g'`
+	ret=$?
+    if [ $ret -eq 0 ]
+    then
+        break
+    fi
+    i=$((i+1))
+done
+
 if [ "$NODES_COMPLETED" -ne "$NODES" ] 
 then
 	STATUS="failed"
