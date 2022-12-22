@@ -14,6 +14,7 @@ ret=1
 i=0
 while  [ $i -lt 60 ] &&  { [ $RUNNING_NODES -lt $NODES ] || [  "$ret" -ne "0" ]; }
 do
+    echo "GET-1"
 	sleep 10
 	RUNNING_NODES=`etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l`
     ret=$?
@@ -22,6 +23,7 @@ do
         RUNNING_NODES=0
     fi
     i=$((i+1))
+    echo $i
 done
 
 echo "{\"opID\":\"$OPID\",\"cmd\":\"verify\",\"levels\":\"$LEVELS\",\"dirsPerLevel\":\"$DIRSPERLEVEL\",\"filesPerLevel\":\"$FILESPERLEVEL\",\"fileLength\":\"$FILELENGTH\",\"blockSize\":\"$BLOCKSIZE\",\"passNum\":\"$PASSNUM\"}" | etcdctl put /kibishii/control --endpoints=http://etcd-client:2379
@@ -30,6 +32,7 @@ ret=1
 i=0
 while  [ $i -lt 60 ] &&  { [ "$STATUS" = 'running' ] || [  "$ret" -ne "0" ]; }
 do
+    echo "GET-2"
 	sleep 10
 	STATUS=`etcdctl get /kibishii/ops/$OPID --endpoints=http://etcd-client:2379 --print-value-only | jq ".status" | sed -e 's/"//g'`
 	ret=$?
@@ -38,20 +41,24 @@ do
         STATUS="running"
     fi
     i=$((i+1))
+    echo $i
 done
 
 ret=1
 i=0
 while  [ $i -lt 60 ] && [  "$ret" -ne "0" ]
 do
+    echo "GET-3"
     sleep 10
     NODES_COMPLETED=`etcdctl get /kibishii/ops/$OPID --endpoints=http://etcd-client:2379 --print-value-only | jq ".nodesCompleted" | sed -e 's/"//g'`
 	ret=$?
     if [ $ret -eq 0 ]
     then
+        echo "break"
         break
     fi
     i=$((i+1))
+    echo $i
 done
 
 if [ "$NODES_COMPLETED" != "$NODES" ] 
@@ -62,6 +69,8 @@ echo $STATUS
 if [ "$STATUS" = 'success' ]
 then
     nodes=`etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep ^kibishii-deployment`
+    echo "nodes"
+    echo $nodes
     for node in $nodes
     do
         results=`etcdctl get /kibishii/results/$OPID/$node --endpoints=http://etcd-client:2379 --print-value-only | jq ".missingDirs,.missingFiles"`
