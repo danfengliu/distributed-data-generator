@@ -16,6 +16,7 @@ while  [ $i -lt 60 ] &&  { [ $RUNNING_NODES -lt $NODES ] || [  "$ret" -ne "0" ];
 do
     echo "GET-1"
 	sleep 10
+    etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l
 	RUNNING_NODES=`etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l`
     ret=$?
     if [ $ret -ne 0 ]
@@ -25,6 +26,8 @@ do
     i=$((i+1))
     echo $i
 done
+echo "------RUNNING_NODES------"
+echo $RUNNING_NODES
 
 echo "{\"opID\":\"$OPID\",\"cmd\":\"verify\",\"levels\":\"$LEVELS\",\"dirsPerLevel\":\"$DIRSPERLEVEL\",\"filesPerLevel\":\"$FILESPERLEVEL\",\"fileLength\":\"$FILELENGTH\",\"blockSize\":\"$BLOCKSIZE\",\"passNum\":\"$PASSNUM\"}" | etcdctl put /kibishii/control --endpoints=http://etcd-client:2379
 STATUS="running"
@@ -43,6 +46,8 @@ do
     i=$((i+1))
     echo $i
 done
+echo "------STATUS------"
+echo $STATUS
 
 ret=1
 i=0
