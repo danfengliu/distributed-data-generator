@@ -15,27 +15,9 @@ limitations under the License.
 */
 package com.vmware.vslm.kibishii.worker;
 
-import java.io.File;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import com.vmware.vslm.kibishii.core.ExecutionThread;
 import com.vmware.vslm.kibishii.core.GeneratorThread;
-import com.vmware.vslm.kibishii.core.Results;
 import com.vmware.vslm.kibishii.core.VerifierThread;
-
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
@@ -53,6 +35,21 @@ import io.etcd.jetcd.watch.WatchEvent;
 import io.etcd.jetcd.watch.WatchEvent.EventType;
 import io.etcd.jetcd.watch.WatchResponse;
 import io.grpc.stub.StreamObserver;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+
+
 
 public class KibishiiWorker {
 
@@ -83,7 +80,7 @@ public class KibishiiWorker {
 	private final String nodeID;
 	private final Client client;
 	private final long leaseID;
-	private int leaseSecs = 10;
+	private int leaseSecs = 10 * 1000;
 	private long leaseMS = leaseSecs * 1000;
 	private String nodeKey, controlKey, resultsKey, statusKey;
 	private ExecutionThread executionThread;
