@@ -14,17 +14,18 @@ ret=1
 i=0
 while  [ $i -lt 60 ] &&  { [ $RUNNING_NODES -lt $NODES ] || [  "$ret" -ne "0" ]; }
 do
+    echo "Current round of getting kibishii node:$i"
     echo "GET-1"
 	sleep 10
     etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l
     echo "GET-1-1"
-	RUNNING_NODES=`etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l`
-    echo "Get RUNNING_NODES: $RUNNING_NODES"
+	RUNNING_NODES=`etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l` 
     ret=$?
     if [ $ret -ne 0 ]
     then
         RUNNING_NODES=0
     fi
+    echo "Get RUNNING_NODES: $RUNNING_NODES"
     i=$((i+1))
     echo "Next round of getting kibishii node:$i"
 done
