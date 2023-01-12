@@ -19,13 +19,14 @@ do
     etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l
     echo "GET-1-1"
 	RUNNING_NODES=`etcdctl get /kibishii/nodes/ --prefix --endpoints=http://etcd-client:2379 | grep /kibishii/nodes | wc -l`
+    echo "Get RUNNING_NODES: $RUNNING_NODES"
     ret=$?
     if [ $ret -ne 0 ]
     then
         RUNNING_NODES=0
     fi
     i=$((i+1))
-    echo $i
+    echo "Next round of getting kibishii node:$i"
 done
 echo "------RUNNING_NODES------"
 echo $RUNNING_NODES
