@@ -7,6 +7,7 @@ FILELENGTH=$4
 BLOCKSIZE=$5
 PASSNUM=$6
 NODES=$7
+NAMPSPACE=$8
 export ETCDCTL_API=3
 RUNNING_NODES=0
 
@@ -60,9 +61,12 @@ do
     sleep 10
     NODES_COMPLETED=`etcdctl get /kibishii/ops/$OPID --endpoints=http://etcd-client:2379 --print-value-only | jq ".nodesCompleted" | sed -e 's/"//g'`
 	ret=$?
-    if [ $ret -eq 0 ]
+    NODES_FAILED=`etcdctl get /kibishii/ops/$OPID --endpoints=http://etcd-client:2379 --print-value-only | jq ".nodesFailed" | sed -e 's/"//g'`
+    echo "NODES_FAILED:$NODES_FAILED"
+    if [ $ret -eq 0 ] && [ "$NODES_COMPLETED" != "$NODES" ] 
     then
         echo "break"
+        echo "NODES_COMPLETED:$NODES_COMPLETED"
         break
     fi
     i=$((i+1))
@@ -72,6 +76,8 @@ done
 if [ "$NODES_COMPLETED" != "$NODES" ] 
 then
 	STATUS="failed"
+    kubectl logs -n $NAMPSPACE kibishii-deployment-0
+    kubectl logs -n $NAMPSPACE kibishii-deployment-1
 fi
 echo $STATUS
 if [ "$STATUS" = 'success' ]
