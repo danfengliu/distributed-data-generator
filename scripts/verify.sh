@@ -29,7 +29,20 @@ do
         echo "Fail to get kibishii node:($ret)"
         echo "error: RUNNING_NODES: ($RUNNING_NODES)"
         RUNNING_NODES=0
-        etcdctl lease  list --endpoints=http://etcd-client:2379
+
+        leases=$(etcdctl lease list  --endpoints=http://etcd-client:2379 | tr -s '\n' ',' | tr -d '[:space:]' | tr -s ',' '\n' )
+
+        first=0
+        for lease in $leases
+        do
+            if [ "$first" -eq "0"  ]
+            then
+                first=1
+                continue
+            fi
+            echo $lease
+            etcdctl lease timetolive $lease --endpoints=http://etcd-client:2379
+        done
     fi
     echo "Get RUNNING_NODES: $RUNNING_NODES"
     i=$((i+1))
