@@ -15,7 +15,7 @@ ret=1
 i=0
 while  [ $i -lt 60 ] &&  { [ $RUNNING_NODES -lt $NODES ] || [  "$ret" -ne "0" ]; }
 do
-    echo "GET-lease ......."
+    echo "GET-lease 1 ......."
     etcdctl lease  list --endpoints=http://etcd-client:2379
     echo "Current round of getting kibishii node:$i"
     echo "GET-1"
@@ -37,6 +37,8 @@ do
 done
 echo "------RUNNING_NODES------"
 echo $RUNNING_NODES
+echo "GET-lease 2 ......."
+etcdctl lease  list --endpoints=http://etcd-client:2379
 
 echo "{\"opID\":\"$OPID\",\"cmd\":\"verify\",\"levels\":\"$LEVELS\",\"dirsPerLevel\":\"$DIRSPERLEVEL\",\"filesPerLevel\":\"$FILESPERLEVEL\",\"fileLength\":\"$FILELENGTH\",\"blockSize\":\"$BLOCKSIZE\",\"passNum\":\"$PASSNUM\"}" | etcdctl put /kibishii/control --endpoints=http://etcd-client:2379
 STATUS="running"
