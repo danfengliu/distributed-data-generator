@@ -24,6 +24,8 @@ do
     ret=$?
     if [ $ret -ne 0 ]
     then
+        echo "Fail to get kibishii node:($ret)"
+        echo "error: RUNNING_NODES: ($RUNNING_NODES)"
         RUNNING_NODES=0
         etcdctl lease  list --endpoints=http://etcd-client:2379
     fi
