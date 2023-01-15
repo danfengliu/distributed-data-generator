@@ -25,6 +25,7 @@ do
     if [ $ret -ne 0 ]
     then
         RUNNING_NODES=0
+        etcdctl lease  list --endpoints=http://etcd-client:2379
     fi
     echo "Get RUNNING_NODES: $RUNNING_NODES"
     i=$((i+1))
