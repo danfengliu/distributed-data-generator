@@ -80,7 +80,7 @@ public class KibishiiWorker {
 	private final String nodeID;
 	private final Client client;
 	private final long leaseID;
-	private int leaseSecs = 10 * 1000;
+	//private int leaseSecs = 10 * 1000;
 	private long leaseMS = 10 * 1000;
 	private String nodeKey, controlKey, resultsKey, statusKey;
 	private ExecutionThread executionThread;
@@ -93,8 +93,8 @@ public class KibishiiWorker {
 			throw new IllegalArgumentException("nodeID may not contain commas or slashes");
 		this.root = root;
 		client = Client.builder().endpoints(Util.toURIs(Arrays.asList(endpoints))).build();
-		leaseID = client.getLeaseClient().grant(leaseSecs).get().getID();
-
+		leaseID = client.getLeaseClient().grant(60*60).get().getID();
+        System.out.println("leaseID:"+leaseID);
 		client.getLeaseClient().keepAlive(leaseID, new StreamObserver<LeaseKeepAliveResponse>() {
 
 			@Override
@@ -180,7 +180,7 @@ public class KibishiiWorker {
 					long fileLength = getLong(responseObject, "fileLength");
 					int blockSize = getInteger(responseObject, "blockSize");
 					int passNum = getInteger(responseObject, "passNum");
-					System.out.println("Generate started, root = " + root +
+					System.out.println(cmd + " started, root = " + root +
 							", levels = " + levels +
 							", dirsPerLevel = " + dirsPerLevel +
 							", filesPerLevel = " + filesPerLevel +
