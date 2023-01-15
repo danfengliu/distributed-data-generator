@@ -15,6 +15,8 @@ ret=1
 i=0
 while  [ $i -lt 60 ] &&  { [ $RUNNING_NODES -lt $NODES ] || [  "$ret" -ne "0" ]; }
 do
+    echo "GET-lease ......."
+    etcdctl lease  list --endpoints=http://etcd-client:2379
     echo "Current round of getting kibishii node:$i"
     echo "GET-1"
 	sleep 10
@@ -24,6 +26,8 @@ do
     ret=$?
     if [ $ret -ne 0 ]
     then
+        echo "Fail to get kibishii node:($ret)"
+        echo "error: RUNNING_NODES: ($RUNNING_NODES)"
         RUNNING_NODES=0
         etcdctl lease  list --endpoints=http://etcd-client:2379
     fi
