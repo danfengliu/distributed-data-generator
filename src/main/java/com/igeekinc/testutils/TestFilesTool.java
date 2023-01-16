@@ -234,7 +234,7 @@ public class TestFilesTool
     	long offset = blockNum * blockSize;
     	ByteBuffer curBlockBytes = generateTestPatternByteBuffer(blockNum, blockSize,
 				passNum, offset);
-    	curBlockBytes.rewind();
+    	//curBlockBytes.rewind();
     	FileChannel writeChannel = file.getChannel();
     	writeChannel.position(offset);
     	writeChannel.write(curBlockBytes);
