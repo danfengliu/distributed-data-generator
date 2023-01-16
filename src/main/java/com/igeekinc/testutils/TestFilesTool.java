@@ -234,7 +234,7 @@ public class TestFilesTool
     	long offset = blockNum * blockSize;
     	ByteBuffer curBlockBytes = generateTestPatternByteBuffer(blockNum, blockSize,
 				passNum, offset);
-    	curBlockBytes.rewind();
+		((java.nio.Buffer)curBlockBytes).rewind();
     	FileChannel writeChannel = file.getChannel();
     	writeChannel.position(offset);
     	writeChannel.write(curBlockBytes);
@@ -245,7 +245,7 @@ public class TestFilesTool
 	{
 		ByteBuffer byteBuffer = generateTestPatternByteBuffer(blockNum, blockSize, passNum, offset);
 		byte [] returnBytes = new byte[byteBuffer.limit()];
-		byteBuffer.position(0);
+		((java.nio.Buffer)byteBuffer).position(0);
 		byteBuffer.get(returnBytes);
 		return returnBytes;
 		/*
