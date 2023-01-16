@@ -27,9 +27,11 @@ import io.etcd.jetcd.Watch.Listener;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.kv.TxnResponse;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
+import io.etcd.jetcd.lease.LeaseTimeToLiveResponse;
 import io.etcd.jetcd.op.Cmp;
 import io.etcd.jetcd.op.CmpTarget;
 import io.etcd.jetcd.options.GetOption;
+import io.etcd.jetcd.options.LeaseOption;
 import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.etcd.jetcd.watch.WatchEvent.EventType;
@@ -47,6 +49,7 @@ import java.util.concurrent.ExecutionException;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 
 
 
@@ -79,7 +82,7 @@ public class KibishiiWorker {
 
 	private final String nodeID;
 	private final Client client;
-	private final long leaseID;
+	private long leaseID;
 	//private int leaseSecs = 10 * 1000;
 	private long leaseMS = 10 * 1000;
 	private String nodeKey, controlKey, resultsKey, statusKey;
@@ -93,13 +96,16 @@ public class KibishiiWorker {
 			throw new IllegalArgumentException("nodeID may not contain commas or slashes");
 		this.root = root;
 		client = Client.builder().endpoints(Util.toURIs(Arrays.asList(endpoints))).build();
+
 		leaseID = client.getLeaseClient().grant(60*60).get().getID();
         System.out.println("leaseID:"+leaseID);
-		client.getLeaseClient().keepAlive(leaseID, new StreamObserver<LeaseKeepAliveResponse>() {
 
+		LeaseTimeToLiveResponse lTRes = client.getLeaseClient().timeToLive(leaseID, LeaseOption.newBuilder().withAttachedKeys().build()).get();
+		System.out.println("LeaseTimeToLiveResponse 1:" + lTRes);
+		client.getLeaseClient().keepAlive(leaseID, new StreamObserver<LeaseKeepAliveResponse>() {
 			@Override
 			public void onNext(LeaseKeepAliveResponse value) {
-				//System.out.println("On next called, value = " + value);
+				System.out.println("On next called, value = " + value);
 			}
 
 			@Override
@@ -110,9 +116,14 @@ public class KibishiiWorker {
 
 			@Override
 			public void onCompleted() {
-				System.out.println("onCompleted called");
-			}
+				System.out.println("leaseID:"+leaseID);
+				System.out.println("onCompleted called - keepAlive");
+			}	
 		});
+
+		lTRes = client.getLeaseClient().timeToLive(leaseID, LeaseOption.newBuilder().withAttachedKeys().build()).get();
+		System.out.println("LeaseTimeToLiveResponse 2:" + lTRes);
+		
 		int retries = 3;
 		boolean succeeded = false;
 		nodeKey = KIBISHII_NODES_PREFIX + nodeID + root.getName();;
@@ -121,12 +132,15 @@ public class KibishiiWorker {
 			Txn checkTxn = client.getKVClient().txn();
 			ByteSequence key = toBS(nodeKey);
 			ByteSequence value = toBS(nodeID);
+			//.Then(io.etcd.jetcd.op.Op.put(key, value, PutOption.newBuilder().withLeaseId(leaseID).build()))
 			CompletableFuture<TxnResponse> resFuture = checkTxn
 					.If(new Cmp(key, Cmp.Op.EQUAL, CmpTarget.createRevision(0)))
-					.Then(io.etcd.jetcd.op.Op.put(key, value, PutOption.newBuilder().withLeaseId(leaseID).build()))
+					.Then(io.etcd.jetcd.op.Op.put(key, value, PutOption.newBuilder().build()))
 					.commit();
 			TxnResponse res = resFuture.get();
 			System.out.println("txn completed");
+			lTRes = client.getLeaseClient().timeToLive(leaseID, LeaseOption.newBuilder().withAttachedKeys().build()).get();
+			System.out.println("LeaseTimeToLiveResponse 3:" + lTRes);
 			if (res.getPutResponses().size() > 0) {
 				System.out.println("Succeded, we are owner for " + nodeID);
 				succeeded = true;
@@ -144,6 +158,24 @@ public class KibishiiWorker {
 				System.out.println("On next called, response = " + response);
 				for (WatchEvent curEvent:response.getEvents()) {
 					if (curEvent.getEventType() == EventType.PUT) {
+						client.getLeaseClient().keepAlive(leaseID, new StreamObserver<LeaseKeepAliveResponse>() {
+							@Override
+							public void onNext(LeaseKeepAliveResponse value) {
+								System.out.println("On next called, value = " + value);
+							}
+				
+							@Override
+							public void onError(Throwable t) {
+								System.out.println("onError called");
+								t.printStackTrace();
+							}
+				
+							@Override
+							public void onCompleted() {
+								System.out.println("leaseID:"+leaseID);
+								System.out.println("onCompleted called - keepAlive - controlKey");
+							}	
+						});
 						controlNodeUpdated(nodeID, root);
 					}
 				}
@@ -157,7 +189,7 @@ public class KibishiiWorker {
 
 			@Override
 			public void onCompleted() {
-				System.out.println("onCompleted called");
+				System.out.println("onCompleted called - Listener");
 			}
 		});
 	}
@@ -278,9 +310,10 @@ public class KibishiiWorker {
 		ByteSequence value = toBS(completionJSON.toJSONString());
 
 		// Only insert if we're the first one to insert something
+		//.Then(io.etcd.jetcd.op.Op.put(key, value, PutOption.newBuilder().withLeaseId(leaseID).build()))
 		CompletableFuture<TxnResponse> resFuture = checkTxn
 				.If(new Cmp(key, Cmp.Op.EQUAL, CmpTarget.createRevision(0)))
-				.Then(io.etcd.jetcd.op.Op.put(key, value, PutOption.newBuilder().withLeaseId(leaseID).build()))
+				.Then(io.etcd.jetcd.op.Op.put(key, value, PutOption.newBuilder().build()))
 				.commit();
 		resFuture.get();	// We actually don't care if it succeeds, if it fails it means someone else
 							// succeeded

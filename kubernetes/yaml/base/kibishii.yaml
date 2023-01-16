@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: kibishii
-        image: gcr.io/velero-gcp/kibishii-worker:main-b33644a-22.Feb.2022.13.16.28
+        image: gcr.io/velero-gcp/kibishii-worker:v-9-d73ece0-16.Jan.2023.08.27.53
         volumeMounts:
         - name: kibishii-data
           mountPath: /data
