@@ -288,7 +288,7 @@ public class TestFilesTool
     		returnBuffer.put(fillBytes, 0, curBytesToFill);
     	}
     	SHA1HashID hashID = new SHA1HashID();
-    	returnBuffer.position(0);
+    	((java.nio.Buffer)returnBuffer).position(0);
     	returnBuffer.limit(bytesToFill + kBlockHeaderBytes);
     	hashID.update(returnBuffer);
     	hashID.finalizeHash();
