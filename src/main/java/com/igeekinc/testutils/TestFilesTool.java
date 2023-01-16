@@ -289,12 +289,12 @@ public class TestFilesTool
     	}
     	SHA1HashID hashID = new SHA1HashID();
     	((java.nio.Buffer)returnBuffer).position(0);
-    	returnBuffer.limit(bytesToFill + kBlockHeaderBytes);
+    	((java.nio.Buffer)returnBuffer).limit(bytesToFill + kBlockHeaderBytes);
     	hashID.update(returnBuffer);
     	hashID.finalizeHash();
     	byte [] hashBytes = hashID.getBytes();
-    	returnBuffer.limit(returnBuffer.capacity());
-    	returnBuffer.position(bytesToFill + kBlockHeaderBytes);
+    	((java.nio.Buffer)returnBuffer).limit(((java.nio.Buffer)returnBuffer).capacity());
+    	((java.nio.Buffer)returnBuffer).position(bytesToFill + kBlockHeaderBytes);
     	returnBuffer.put(hashBytes);
 		return returnBuffer;
 	}
