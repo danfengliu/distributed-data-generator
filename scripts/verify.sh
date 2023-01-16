@@ -11,6 +11,23 @@ NAMPSPACE=$8
 export ETCDCTL_API=3
 RUNNING_NODES=0
 
+function get_leases(){
+    leases=$(etcdctl lease list  --endpoints=http://etcd-client:2379 | tr -s '\n' ',' | tr -d '[:space:]' | tr -s ',' '\n' )
+
+    first=0
+    for lease in $leases
+    do
+        if [ "$first" -eq "0"  ]
+        then
+            first=1
+            continue
+        fi
+        echo $lease
+        etcdctl lease timetolive $lease --endpoints=http://etcd-client:2379
+    done
+}
+
+
 ret=1
 i=0
 while  [ $i -lt 60 ] &&  { [ $RUNNING_NODES -lt $NODES ] || [  "$ret" -ne "0" ]; }
@@ -29,20 +46,7 @@ do
         echo "Fail to get kibishii node:($ret)"
         echo "error: RUNNING_NODES: ($RUNNING_NODES)"
         RUNNING_NODES=0
-
-        leases=$(etcdctl lease list  --endpoints=http://etcd-client:2379 | tr -s '\n' ',' | tr -d '[:space:]' | tr -s ',' '\n' )
-
-        first=0
-        for lease in $leases
-        do
-            if [ "$first" -eq "0"  ]
-            then
-                first=1
-                continue
-            fi
-            echo $lease
-            etcdctl lease timetolive $lease --endpoints=http://etcd-client:2379
-        done
+        get_leases
     fi
     echo "Get RUNNING_NODES: $RUNNING_NODES"
     i=$((i+1))
@@ -87,6 +91,7 @@ do
     then
         echo "break"
         echo "NODES_COMPLETED:$NODES_COMPLETED"
+        get_leases
         break
     fi
     i=$((i+1))
@@ -96,8 +101,6 @@ done
 if [ "$NODES_COMPLETED" != "$NODES" ] 
 then
 	STATUS="failed"
-    kubectl logs -n $NAMPSPACE kibishii-deployment-0
-    kubectl logs -n $NAMPSPACE kibishii-deployment-1
 fi
 echo $STATUS
 if [ "$STATUS" = 'success' ]
