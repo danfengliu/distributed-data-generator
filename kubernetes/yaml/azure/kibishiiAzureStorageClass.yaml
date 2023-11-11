@@ -7,6 +7,6 @@ parameters:
   cachingmode: ReadOnly
   kind: Managed
   storageaccounttype: StandardSSD_LRS
-reclaimPolicy: Delete
+reclaimPolicy: $(reclaim)
 volumeBindingMode: WaitForFirstConsumer
 
